@@ -5,73 +5,75 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 class PokemonList extends StatefulWidget {
-  const PokemonList({
-    super.key,
-  });
+  const PokemonList({Key? key}) : super(key: key);
 
   @override
   State<PokemonList> createState() => _PokemonListState();
 }
 
 class _PokemonListState extends State<PokemonList> {
-  PokemonListResponse? _data;
-  late Future<List<PokemonListItem>> _list;
+  late Future<List<PokemonListItem>> _pokemonListFuture;
 
   @override
   void initState() {
     super.initState();
-    loadData();
+    _pokemonListFuture = fetchPokemonList();
   }
 
-  //load data
-  void loadData() async {
-    //fetch data
-    final response =
-        await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon'));
+  Future<List<PokemonListItem>> fetchPokemonList() async {
+    final response = await http.get(Uri.parse('https://pokeapi.co/api/v2/pokemon?limit=1000'));
+
     if (response.statusCode == 200) {
-      final PokemonListResponse data =
-          PokemonListResponse.fromJson(jsonDecode(response.body));
-      setState(() {
-        _data = data;
-        _list = Future.value(data.results);
-      });
+      final data = PokemonListResponse.fromJson(jsonDecode(response.body));
+      return data.results;
     } else {
-      print('Failed to load data');
+      throw Exception('Failed to load Pokémon data');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<PokemonListItem>>(
-        future: _list,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No Pokemon found'));
-          } else {
-            final List<PokemonListItem> response =
-                snapshot.data as List<PokemonListItem>;
+      future: _pokemonListFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No Pokémon found'));
+        }
 
-            return ListView.builder(
-              itemCount: response.length,
-              itemBuilder: (context, index) {
-                final PokemonListItem pokemon = response[index];
-                return ListTile(
-                    title: Text(pokemon.name),
-                    onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => PokemondetailView(
-                              pokemonListItem: pokemon,
-                            ),
-                          ),
-                        ));
-              },
+        final pokemonList = snapshot.data!;
+
+        return ListView.builder(
+          itemCount: pokemonList.length,
+          itemBuilder: (context, index) {
+            final pokemon = pokemonList[index];
+            final pokemonId = int.parse(pokemon.url.split("/").where((segment) => segment.isNotEmpty).last);
+            final imageUrl = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$pokemonId.png";
+
+            return ListTile(
+              leading: Image.network(
+                imageUrl,
+                width: 50,
+                height: 50,
+                errorBuilder: (context, error, stackTrace) => const Icon(Icons.error),
+              ),
+              title: Text(pokemon.name),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PokemondetailView(
+                    pokemonList: pokemonList,
+                    currentIndex: index,
+                  ),
+                ),
+              ),
             );
-          }
-        });
+          },
+        );
+      },
+    );
   }
 }
