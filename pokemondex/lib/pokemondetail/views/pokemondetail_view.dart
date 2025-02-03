@@ -75,26 +75,39 @@ class _PokemondetailViewState extends State<PokemondetailView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Center(
-                        child: Image.network(
-                          pokemonData!['sprites']['front_default'] ??
-                              "https://via.placeholder.com/150",
-                          width: 150,
-                          height: 150,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.purple.shade50,
+                            border: Border.all(color: Colors.purple, width: 2),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            children: [
+                              Image.network(
+                                pokemonData!['sprites']['front_default'] ??
+                                    "https://via.placeholder.com/150",
+                                width: 150,
+                                height: 150,
+                              ),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Name: ${pokemonData!['name'].toUpperCase()}',
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.purple,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
                       Center(
                         child: Text(
-                          'Name: ${pokemonData!['name'].toUpperCase()}',
-                          style: const TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Center(
-                        child: Text(
                           'Type: ${_getTypes()}',
-                          style: const TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16, color: Colors.black54),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -105,24 +118,34 @@ class _PokemondetailViewState extends State<PokemondetailView> {
                               fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      Center(child: const SizedBox(height: 10)),
+                      const SizedBox(height: 10),
                       ..._buildStats(),
                       const Spacer(),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.purple,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
                             onPressed: widget.currentIndex > 0
-                                ? () =>
-                                    _navigateToDetail(widget.currentIndex - 1)
+                                ? () => _navigateToDetail(widget.currentIndex - 1)
                                 : null,
                             child: const Text('Back'),
                           ),
                           ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              foregroundColor: Colors.white, backgroundColor: Colors.purple,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
                             onPressed: widget.currentIndex <
                                     widget.pokemonList.length - 1
-                                ? () =>
-                                    _navigateToDetail(widget.currentIndex + 1)
+                                ? () => _navigateToDetail(widget.currentIndex + 1)
                                 : null,
                             child: const Text('Next'),
                           ),
@@ -142,10 +165,17 @@ class _PokemondetailViewState extends State<PokemondetailView> {
   List<Widget> _buildStats() {
     List stats = pokemonData!['stats'];
     return stats
-        .map((stat) => Center(
-              child: Text(
-                '${stat['stat']['name']}: ${stat['base_stat']}',
-                style: const TextStyle(fontSize: 14),
+        .map((stat) => Card(
+              margin: const EdgeInsets.symmetric(vertical: 5),
+              elevation: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: Center(
+                  child: Text(
+                    '${stat['stat']['name']}: ${stat['base_stat']}',
+                    style: const TextStyle(fontSize: 14, color: Color.fromARGB(255, 0, 0, 0)),
+                  ),
+                ),
               ),
             ))
         .toList();
